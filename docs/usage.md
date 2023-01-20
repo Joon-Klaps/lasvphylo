@@ -56,6 +56,7 @@ An [example samplesheet](../assets/samplesheet.csv) has been provided with the p
 
 The typical command for running the pipeline is as follows:
 
+// TODO
 ```bash
 nextflow run nf-core/lasvphylo --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile docker
 ```
