@@ -4,9 +4,6 @@
     nf-core/lasvphylo
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Github : https://github.com/nf-core/lasvphylo
-
-    Website: https://nf-co.re/lasvphylo
-    Slack  : https://nfcore.slack.com/channels/lasvphylo
 ----------------------------------------------------------------------------------------
 */
 

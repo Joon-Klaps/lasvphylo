@@ -10,36 +10,35 @@ process MAFFT {
         'quay.io/biocontainers/mafft:7.508--hec16e2b_0' }"
 
     input:
-    tuple val(meta), path(addsequences), path(alignment), path(tree)
-    path fasta
-    val(onlynewseq) // boolean
+    tuple val(meta), path(addsequences), path(alignment)
+    val gene
 
 
     output:
-    tuple val(meta), path("*.fas"), path(alignment), path(tree)         , emit: addseq
-    path ("*.fas")                                                      , emit: fasta
-    path "versions.yml"                                                 , emit: versions
+    tuple val(meta), path("*.fas")  , emit: fasta
+    path ("*.txt")                  , emit: pattern
+    path "versions.yml"             , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
     def args = task.ext.args ?: ''
-    def fasta = fasta ?: "${alignment}" // if external alginment not given use the one in the map
+    def fasta = alignment 
     def prefix = task.ext.prefix ?: "${meta.id}"
     def add = addsequences ? "--add ${addsequences}" : ''
-    def onlynewseq = onlynewseq ?: 'FALSE'
+    def gene = gene? ".${gene}" : ''
+    
     """
     mafft \\
         --thread ${task.cpus} \\
         ${args} \\
         ${add} \\
-        ${fasta} \\
-        > ${prefix}.fas
+        ${fasta}  \\
+        > tmp
 
-    if ${onlynewseq}; then 
-        selectSeqs.sh ${prefix}.fas ${add}
-    fi 
+    sed "s/>_R_/>/g" tmp > ${prefix}${gene}.fas 
+    grep ">" ${addsequences} | sed "s/>//g" > ${prefix}.patterns.txt
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

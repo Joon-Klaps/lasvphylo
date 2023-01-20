@@ -12,6 +12,10 @@
             "description": "Define where the pipeline should find input data and save output data.",
             "required": ["input_L","input_S", "outdir"],
             "properties": {
+                "input_id_S": {
+                    "type": "string"},
+                "input_id_L": {
+                    "type": "string"},
                 "input_S": {
                     "type": "string",
                     "format": "directory-path"},

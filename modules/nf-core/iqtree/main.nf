@@ -10,7 +10,7 @@ process IQTREE {
         'quay.io/biocontainers/iqtree:2.1.4_beta--hdcc8f71_0' }"
 
     input:
-    tuple val(meta), path(addsequences), path(alignment), path(constrain_tree)
+    tuple val(meta), path(alignment), path(constrain_tree)
     val constant_sites
 
     output:
@@ -29,7 +29,7 @@ process IQTREE {
         $fconst_args \\
         $args \\
         -s $alignment \\
-        -g constrain_tree \\
+        -g $constrain_tree \\
         -nt AUTO \\
         -ntmax $task.cpus \\
         -mem $memory \\
