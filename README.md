@@ -19,7 +19,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 2. Remove the reference sequences from the alignment ([`SeqTk`](https://github.com/lh3/seqtk))
 3. Concatenate the genes to each other ([`SeqKit`](https://bioinf.shenwei.me/seqkit/))
 4. Align the concatenated genes to an existing alignment ([`MUSCLE`](https://www.drive5.com/muscle))
-5. Perform a __constrained__ tree search using a previous tree and the new sequences ([`IQ-TREE`](http://www.iqtree.org/))
+5. Perform a __constrained__ tree search using a previous tree and new sequences ([`IQ-TREE`](http://www.iqtree.org/))
 
 ## Quick Start
 
