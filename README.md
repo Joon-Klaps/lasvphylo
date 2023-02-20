@@ -33,7 +33,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 3. Download the pipeline (got clone) and give in the correct variables :
 
    ```bash
-   nextflow run nf-core/lasvphylo -profile YOURPROFILE -c <CONFIG> --outdir <OUTDIR>
+   nextflow run lasvphylo/main.nf -profile YOURPROFILE -c <CONFIG> --outdir <OUTDIR>
    ```
    Note that some form of configuration will be needed so that Nextflow knows how to fetch the required software. You can chain multiple config profiles in a comma-separated string. In this config file you'll have to specify the following variables:
 
