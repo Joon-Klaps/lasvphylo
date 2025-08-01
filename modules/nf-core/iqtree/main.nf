@@ -1,4 +1,4 @@
-//modified from the original module 
+//modified from the original module
 
 process IQTREE {
     tag "$alignment"
@@ -15,6 +15,8 @@ process IQTREE {
 
     output:
     path "*.treefile",    emit: phylogeny
+    path "*.log",         emit: log
+    path "*.mldist",      emit: mldist
     path "versions.yml" , emit: versions
 
     when:
