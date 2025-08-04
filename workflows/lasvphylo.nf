@@ -11,43 +11,21 @@ def checkPathParamList = [params.input_S,params.input_L,params.alignment_S,param
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    IMPORT LOCAL MODULES/SUBWORKFLOWS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
 
 //
-// MODULE: created locally
+// MODULES
 //
+
+include { MAFFT as MAFFT_ORIENT } from '../modules/nf-core/mafft/main.nf'
+include { SUBSEQ                } from '../modules/local/subseq/main.nf'
 
 include { SEQKIT_CONCAT as SEQKIT_CONCAT_L } from '../modules/local/seqkit/concat.nf'
 include { SEQKIT_CONCAT as SEQKIT_CONCAT_S } from '../modules/local/seqkit/concat.nf'
 
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    IMPORT NF-CORE MODULES/SUBWORKFLOWS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
+include { MUSCLE                } from '../modules/nf-core/muscle/main.nf'
+include { MAFFT as MAFFT_ALIGN  } from '../modules/nf-core/mafft/main.nf'
 
-//
-// MODULE: Installed directly from nf-core/modules (and slightly modified in this case)
-//
-
-include { MAFFT as MAFFT_ORIENT_POL         } from '../modules/nf-core/mafft/main.nf'
-include { MAFFT as MAFFT_ORIENT_Z           } from '../modules/nf-core/mafft/main.nf'
-include { MAFFT as MAFFT_ORIENT_GPC         } from '../modules/nf-core/mafft/main.nf'
-include { MAFFT as MAFFT_ORIENT_NP          } from '../modules/nf-core/mafft/main.nf'
-include { SEQTK_SUBSEQ as SEQTK_SUBSEQ_POL  } from '../modules/nf-core/seqtk/subseq/main.nf'
-include { SEQTK_SUBSEQ as SEQTK_SUBSEQ_Z    } from '../modules/nf-core/seqtk/subseq/main.nf'
-include { SEQTK_SUBSEQ as SEQTK_SUBSEQ_GPC  } from '../modules/nf-core/seqtk/subseq/main.nf'
-include { SEQTK_SUBSEQ as SEQTK_SUBSEQ_NP   } from '../modules/nf-core/seqtk/subseq/main.nf'
-
-
-include { MUSCLE                            } from '../modules/nf-core/muscle/main.nf'
-include { MAFFT as MAFFT_ALIGN              } from '../modules/nf-core/mafft/main.nf'
-
-include { IQTREE } from '../modules/nf-core/iqtree/main.nf'
+include { IQTREE                } from '../modules/nf-core/iqtree/main.nf'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,51 +46,55 @@ workflow LASVPHYLO {
 
     if (!params.skip_indiv_gene_extraction) {
             // orient & isolate genes difficult to make them into a single channel as we need to make a distinction the correct order of genes
-    ch_data_pol= Channel.of(
+    ch_data= Channel.of(
         [
         meta: [ id :params.input_id_L ],
         seq: params.input_L,
         alignment: params.input_POL,
-        ]
-    )
-    ch_data_z= Channel.of(
+        gene: "pol"
+        ],
         [
         meta: [ id :params.input_id_L ],
         seq: params.input_L,
         alignment: params.input_Z,
-        ]
-    )
-    ch_data_np= Channel.of(
+        gene: "z"
+        ],
         [
         meta: [ id :params.input_id_S ],
         seq: params.input_S,
         alignment: params.input_NP,
-        ]
-    )
-    ch_data_gpc= Channel.of(
+        gene:"np"
+        ],
         [
-        meta: [ id :params.input_id_S ],
+        meta: [ id :params.input_id_S],
         seq: params.input_S,
         alignment: params.input_GPC,
+        gene:"gpc"
         ]
     )
+    mafft_orient_in = ch_data.branch{meta, seq, alignment, gene ->
+        data: [meta + [gene: gene], seq, alignment]
+        gene: gene
+    }
+    MAFFT_ORIENT(mafft_orient_in.data, mafft_orient_in.gene)
 
-    MAFFT_ORIENT_POL(ch_data_pol,"pol")
-    MAFFT_ORIENT_Z(ch_data_z,"z")
-    MAFFT_ORIENT_NP(ch_data_np,"np")
-    MAFFT_ORIENT_GPC(ch_data_gpc,"gpc")
 
     //isolate ony the new sequence
-    SEQTK_SUBSEQ_POL(MAFFT_ORIENT_POL.out.fasta, MAFFT_ORIENT_POL.out.pattern, "pol")
-    SEQTK_SUBSEQ_Z(MAFFT_ORIENT_Z.out.fasta, MAFFT_ORIENT_Z.out.pattern, "z")
-    SEQTK_SUBSEQ_NP(MAFFT_ORIENT_NP.out.fasta, MAFFT_ORIENT_NP.out.pattern, "np")
-    SEQTK_SUBSEQ_GPC(MAFFT_ORIENT_GPC.out.fasta, MAFFT_ORIENT_GPC.out.pattern, "gpc")
+    yml_file = Channel.of(file(params.yml_file, checkIfExists: true) ?: [])
+    SUBSEQ(MAFFT_ORIENT.out.fasta, MAFFT_ORIENT.out.gene, MAFFT_ORIENT.out.pattern, yml_file)
 
     //Concat the gene segments again
     // L: RC_Pol then Z
     // S: RC_NP then GPC
-    SEQKIT_CONCAT_L(SEQTK_SUBSEQ_POL.out.sequences,SEQTK_SUBSEQ_Z.out.sequences)
-    SEQKIT_CONCAT_S(SEQTK_SUBSEQ_NP.out.sequences,SEQTK_SUBSEQ_GPC.out.sequences)
+    genes_isolated = SUBSEQ.out.sequences.branch{ meta, gene, sequences ->
+        pol: gene == "pol"
+        z: gene == "z"
+        np: gene == "np"
+        gpc: gene == "gpc"
+    }
+
+    SEQKIT_CONCAT_L(genes_isolated.pol,genes_isolated.z)
+    SEQKIT_CONCAT_S(genes_isolated.np,genes_isolated.gpc)
 
     ch_cutted_genes= SEQKIT_CONCAT_L.out.fasta.mix(SEQKIT_CONCAT_S.out.fasta)
     ch_modSeqs= ch_cutted_genes.join(ch_base_alignment)
