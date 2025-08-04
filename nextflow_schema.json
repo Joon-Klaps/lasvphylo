@@ -58,6 +58,12 @@
                     "type": "string",
                     "format": "directory-path"
                 },
+                "modify_list": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Path to a yml file containing a list of sequences to modify. This is used to filter the sequences based on the provided list.",
+                    "fa_icon": "fas fa-list"
+                },
                 "skip_indiv_gene_extraction": {
                     "type": "boolean",
                     "default": false,
