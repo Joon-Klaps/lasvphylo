@@ -66,7 +66,7 @@ workflow LASVPHYLO {
     )
 
 
-    if (! params.skip_indiv_gene_extraction) {
+    if (!params.skip_indiv_gene_extraction) {
             // orient & isolate genes difficult to make them into a single channel as we need to make a distinction the correct order of genes
     ch_data_pol= Channel.of(
         [
@@ -126,7 +126,8 @@ workflow LASVPHYLO {
             [[ id :params.input_id_L ], params.input_L],
             [[ id :params.input_id_S ], params.input_S]
         )
-        ch_added_alignment = MUSCLE(ch_input).aligned_fasta
+        ch_modSeqs = ch_input.join(ch_base_alignment)
+        ch_added_alignment = MAFFT_ALIGN(ch_modSeqs, "all").aligned_fasta
 
     }
 
