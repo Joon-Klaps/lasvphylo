@@ -38,12 +38,14 @@ include { MAFFT as MAFFT_ORIENT_POL         } from '../modules/nf-core/mafft/mai
 include { MAFFT as MAFFT_ORIENT_Z           } from '../modules/nf-core/mafft/main.nf'
 include { MAFFT as MAFFT_ORIENT_GPC         } from '../modules/nf-core/mafft/main.nf'
 include { MAFFT as MAFFT_ORIENT_NP          } from '../modules/nf-core/mafft/main.nf'
-//include { MAFFT as MAFFT_ALIGN } from '../modules/nf-core/mafft/main.nf'
-include { MUSCLE                            } from '../modules/nf-core/muscle/main.nf'
 include { SEQTK_SUBSEQ as SEQTK_SUBSEQ_POL  } from '../modules/nf-core/seqtk/subseq/main.nf'
 include { SEQTK_SUBSEQ as SEQTK_SUBSEQ_Z    } from '../modules/nf-core/seqtk/subseq/main.nf'
 include { SEQTK_SUBSEQ as SEQTK_SUBSEQ_GPC  } from '../modules/nf-core/seqtk/subseq/main.nf'
 include { SEQTK_SUBSEQ as SEQTK_SUBSEQ_NP   } from '../modules/nf-core/seqtk/subseq/main.nf'
+
+
+include { MUSCLE                            } from '../modules/nf-core/muscle/main.nf'
+include { MAFFT as MAFFT_ALIGN              } from '../modules/nf-core/mafft/main.nf'
 
 include { IQTREE } from '../modules/nf-core/iqtree/main.nf'
 
@@ -53,41 +55,47 @@ include { IQTREE } from '../modules/nf-core/iqtree/main.nf'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// Info required for completion email and summary
-def multiqc_report = []
-
-// TODO: ALIGN with MAFT -- keep length and try and have only the L and GPC genes. & Create a tree.
+//ALIGN with MAFT -- keep length and try and have only the L and GPC genes. & Create a tree.
 workflow LASVPHYLO {
 
-    // orient & isolate genes difficult to make them into a single channel as we need to make a distinction the correct order of genes
+    ch_cutted_genes= Channel.empty()
+
+    ch_base_alignment = Channel.of(
+        [[ id :params.input_id_L ], params.alignment_L],
+        [[ id :params.input_id_S ], params.alignment_S]
+    )
+
+
+    if (! params.skip_indiv_gene_extraction) {
+            // orient & isolate genes difficult to make them into a single channel as we need to make a distinction the correct order of genes
     ch_data_pol= Channel.of(
         [
         meta: [ id :params.input_id_L ],
         seq: params.input_L,
         alignment: params.input_POL,
         ]
-        )
+    )
     ch_data_z= Channel.of(
         [
         meta: [ id :params.input_id_L ],
         seq: params.input_L,
         alignment: params.input_Z,
         ]
-        )
+    )
     ch_data_np= Channel.of(
         [
         meta: [ id :params.input_id_S ],
         seq: params.input_S,
         alignment: params.input_NP,
         ]
-        )
+    )
     ch_data_gpc= Channel.of(
         [
         meta: [ id :params.input_id_S ],
         seq: params.input_S,
         alignment: params.input_GPC,
         ]
-        )
+    )
 
     MAFFT_ORIENT_POL(ch_data_pol,"pol")
     MAFFT_ORIENT_Z(ch_data_z,"z")
@@ -107,20 +115,26 @@ workflow LASVPHYLO {
     SEQKIT_CONCAT_S(SEQTK_SUBSEQ_NP.out.sequences,SEQTK_SUBSEQ_GPC.out.sequences)
 
     ch_cutted_genes= SEQKIT_CONCAT_L.out.fasta.mix(SEQKIT_CONCAT_S.out.fasta)
+    ch_modSeqs= ch_cutted_genes.join(ch_base_alignment)
 
+    ch_added_alignment = MUSCLE(ch_modSeqs).aligned_fasta
 
-    ch_data = Channel.of(
-        [[ id :params.input_id_L ], params.alignment_L],
-        [[ id :params.input_id_S ], params.alignment_S]
+    }else {
+
+        // if we skip the individual gene extraction, we just use the input files as they are
+        ch_input = Channel.of(
+            [[ id :params.input_id_L ], params.input_L],
+            [[ id :params.input_id_S ], params.input_S]
         )
+        ch_added_alignment = MUSCLE(ch_input).aligned_fasta
 
-    ch_modSeqs= ch_cutted_genes.join(ch_data)
+    }
+
 
     // MAFFT align add the additional sequences to the old alignment
-    MUSCLE(ch_modSeqs)
 
     // merge with previous tree as a guidance
-    ch_data_tree = MUSCLE.out.aligned_fasta.join(
+    ch_data_tree = ch_added_alignment.join(
         Channel.of(
             [[ id :params.input_id_L ], params.tree_L],
             [[ id :params.input_id_S ], params.tree_S]
@@ -130,22 +144,6 @@ workflow LASVPHYLO {
     //IQTREE use the previous alignment and make the tree using the previous tree as a constrain to speed it up
     IQTREE(ch_data_tree, [])
 
-}
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    COMPLETION EMAIL AND SUMMARY
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-
-workflow.onComplete {
-    if (params.email || params.email_on_fail) {
-        NfcoreTemplate.email(workflow, params, summary_params, projectDir, log, multiqc_report)
-    }
-    NfcoreTemplate.summary(workflow, params, log)
-    if (params.hook_url) {
-        NfcoreTemplate.IM_notification(workflow, params, summary_params, projectDir, log)
-    }
 }
 
 /*
