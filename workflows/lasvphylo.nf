@@ -127,7 +127,7 @@ workflow LASVPHYLO {
             [[ id :params.input_id_S ], params.input_S]
         )
         ch_modSeqs = ch_input.join(ch_base_alignment)
-        ch_added_alignment = MAFFT_ALIGN(ch_modSeqs, "all").aligned_fasta
+        ch_added_alignment = MAFFT_ALIGN(ch_modSeqs, "all").fasta
 
     }
 
