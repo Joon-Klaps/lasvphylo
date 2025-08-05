@@ -53,8 +53,9 @@ workflow LASVPHYLO {
 
         ch_newseq_gene.data.view{ meta,seq, alignment -> "Gene: ${meta.gene} - ID: ${meta.id} - File: ${seq} - Alignment: ${alignment}" }
 
+
         //isolate ony the new sequence
-        yml_file = Channel.of(file(params.modify_list, checkIfExists: true) ?: [])
+        yml_file = Channel.value(file(params.modify_list, checkIfExists: true) ?: [])
         SUBSEQ(MAFFT_ORIENT.out.fasta, MAFFT_ORIENT.out.gene, MAFFT_ORIENT.out.pattern, yml_file)
 
         //Concat the gene segments again

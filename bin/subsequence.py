@@ -36,15 +36,33 @@ def load_filter_list(filter_file: Path) -> Set[str]:
 
 
 def find_pattern_positions(sequence: str, pattern: str) -> List[int]:
-    """Find all positions of a pattern in a sequence (non-overlapping)."""
+    """Find all positions of a pattern in a sequence, accounting for gaps within the pattern."""
+    if not pattern:
+        return []
+
     positions = []
-    start = 0
-    while True:
-        pos = sequence.find(pattern, start)
-        if pos == -1:
-            break
-        positions.append(pos)
-        start = pos + len(pattern)
+    pattern_len = len(pattern)
+    sequence_len = len(sequence)
+
+    # Try starting from each position in the sequence
+    for start_pos in range(sequence_len):
+        # Skip if current position is a gap
+        if sequence[start_pos] == "-":
+            continue
+
+        # Collect non-gap characters starting from this position
+        collected_chars = ""
+        current_pos = start_pos
+
+        while len(collected_chars) < pattern_len and current_pos < sequence_len:
+            if sequence[current_pos] != "-":
+                collected_chars += sequence[current_pos]
+            current_pos += 1
+
+        # Check if we collected enough characters and they match the pattern
+        if len(collected_chars) == pattern_len and collected_chars.upper() == pattern.upper():
+            positions.append(start_pos)
+
     return positions
 
 
