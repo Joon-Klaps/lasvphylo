@@ -104,9 +104,9 @@ def process_sequence(record: SeqRecord, gene_config: Dict, target_ids: Set[str])
 
         if pattern:
             if seq_id in leading_ids:
-                sequence = mask_leading_regions(sequence, pattern)
+                sequence = mask_leading_regions(sequence.upper(), pattern.upper())
             elif seq_id in trailing_ids:
-                sequence = mask_trailing_regions(sequence, pattern)
+                sequence = mask_trailing_regions(sequence.upper(), pattern.upper())
 
     return SeqRecord(Seq(sequence), id=record.id, description=record.description)
 
