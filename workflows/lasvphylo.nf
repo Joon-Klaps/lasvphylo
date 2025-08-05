@@ -46,7 +46,7 @@ workflow LASVPHYLO {
             tuple([id: params.input_id_S], file(params.input_S, checkIfExists: true), file(params.input_NP, checkIfExists: true), "np"),
             tuple([id: params.input_id_S], file(params.input_S, checkIfExists: true), file(params.input_GPC, checkIfExists: true), "gpc")
         ).multiMap{meta, seq, alignment, gene ->
-            data: [meta + ['gene': gene], seq, alignment]
+            data: [meta, seq, alignment]
             gene: gene
         }
         MAFFT_ORIENT(ch_newseq_gene.data, ch_newseq_gene.gene)
