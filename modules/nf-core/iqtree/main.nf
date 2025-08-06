@@ -25,7 +25,7 @@ process IQTREE {
     script:
     def args = task.ext.args ?: ''
     def fconst_args = constant_sites ? "-fconst $constant_sites" : ''
-    def fconst_tree = constant_sites ? "-g $constrain_tree" : ''
+    def fconst_tree = constrain_tree ? "-g $constrain_tree" : ''
     def memory      = task.memory.toString().replaceAll(' ', '')
     """
     iqtree \\
