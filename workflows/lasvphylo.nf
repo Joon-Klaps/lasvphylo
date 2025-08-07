@@ -78,7 +78,8 @@ workflow LASVPHYLO {
         ch_cutted_genes= SEQKIT_CONCAT_L.out.fasta.mix(SEQKIT_CONCAT_S.out.fasta)
         ch_modSeqs= ch_cutted_genes.join(ch_base_alignment)
 
-        ch_added_alignment = MUSCLE(ch_modSeqs).aligned_fasta
+        ch_added_alignment = ch_cutted_genes
+        // ch_added_alignment = MUSCLE(ch_modSeqs).aligned_fasta
 
     }else {
 

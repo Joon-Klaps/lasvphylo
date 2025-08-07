@@ -15,6 +15,7 @@ process SUBSEQ {
 
     output:
     tuple val(meta), val(gene), path("*.fa"), emit: fasta
+    tuple val(meta), path("*.log")          , emit: log
     path "versions.yml"                     , emit: versions
 
     when:
@@ -30,6 +31,7 @@ process SUBSEQ {
         --gene ${gene} \\
         ${filter_arg} \\
         ${yml_arg} \\
+        --log-file ${prefix}.log \\
         --output ${prefix}_subseq.${gene}.fa
 
     cat <<-END_VERSIONS > versions.yml
