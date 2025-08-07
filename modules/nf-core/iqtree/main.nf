@@ -16,7 +16,7 @@ process IQTREE {
     output:
     path "*.treefile",    emit: phylogeny
     path "*.log",         emit: log
-    path "*.mldist",      emit: mldist
+    path "*.mldist",      emit: mldist, optional:true
     path "versions.yml" , emit: versions
 
     when:
