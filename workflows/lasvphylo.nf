@@ -33,10 +33,14 @@ workflow LASVPHYLO {
     ch_cutted_genes= Channel.empty()
 
     ch_base_alignment = Channel.of(
-        [[ id :params.input_id_L ], params.alignment_L],
-        [[ id :params.input_id_S ], params.alignment_S]
+        [[ id :params.input_id_L ], file(params.alignment_L, checkIfExists: true)],
+        [[ id :params.input_id_S ], file(params.alignment_S, checkIfExists: true)],
     )
 
+    ch_trees = Channel.of(
+        [[ id: params.input_id_L ], file(params.tree_L, checkIfExists: true)],
+        [[ id: params.input_id_S ], file(params.tree_S, checkIfExists: true)],
+    )
 
     // orient & isolate genes difficult to make them into a single channel as we need to make a distinction the correct order of genes
     ch_newseq_gene = Channel.of(
@@ -49,9 +53,6 @@ workflow LASVPHYLO {
         gene: gene
     }
     MAFFT_ORIENT(ch_newseq_gene.data, ch_newseq_gene.gene)
-
-    ch_newseq_gene.data.view{ meta,seq, alignment -> "Gene: ${meta.gene} - ID: ${meta.id} - File: ${seq} - Alignment: ${alignment}" }
-
 
     //isolate ony the new sequence
     yml_file = Channel.value(file(params.modify_list, checkIfExists: true) ?: [])
@@ -78,15 +79,13 @@ workflow LASVPHYLO {
     ch_added_alignment = ch_cutted_genes
         .mix(ch_base_alignment)
         .collectFile(storeDir: "${params.outdir}/combined"){meta, file -> ["${meta.id}.msa", file]}
-        .map{file -> [ [id: file.simpleName], file ] }
+        .map{file -> [ [id: file.name.replaceAll(/\.msa$/, '')], file ] }
+
+    ch_added_alignment.view{ it -> "ID: ${it[0]} - Alignment: ${it[1]}" }
+    ch_trees.view{ it -> "ID: ${it[0]} - Tree: ${it[1]}" }
 
     // merge with previous tree as a guidance
-    ch_data_tree = ch_added_alignment.join(
-        Channel.of(
-            [[ id: params.input_id_L ], params.tree_L],
-            [[ id: params.input_id_S ], params.tree_S]
-            )
-    )
+    ch_data_tree = ch_added_alignment.join(ch_trees)
 
     //IQTREE use the previous alignment and make the tree using the previous tree as a constrain to speed it up
     IQTREE(ch_data_tree, [])
