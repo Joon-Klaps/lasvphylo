@@ -38,68 +38,53 @@ workflow LASVPHYLO {
     )
 
 
-    if (!params.skip_indiv_gene_extraction) {
-        // orient & isolate genes difficult to make them into a single channel as we need to make a distinction the correct order of genes
-        ch_newseq_gene = Channel.of(
-            tuple([id: params.input_id_L], file(params.input_L, checkIfExists: true), file(params.input_POL, checkIfExists: true), "pol"),
-            tuple([id: params.input_id_L], file(params.input_L, checkIfExists: true), file(params.input_Z, checkIfExists: true), "z"),
-            tuple([id: params.input_id_S], file(params.input_S, checkIfExists: true), file(params.input_NP, checkIfExists: true), "np"),
-            tuple([id: params.input_id_S], file(params.input_S, checkIfExists: true), file(params.input_GPC, checkIfExists: true), "gpc")
-        ).multiMap{meta, seq, alignment, gene ->
-            data: [meta, seq, alignment]
-            gene: gene
-        }
-        MAFFT_ORIENT(ch_newseq_gene.data, ch_newseq_gene.gene)
+    // orient & isolate genes difficult to make them into a single channel as we need to make a distinction the correct order of genes
+    ch_newseq_gene = Channel.of(
+        tuple([id: params.input_id_L], file(params.input_L, checkIfExists: true), file(params.input_POL, checkIfExists: true), "pol"),
+        tuple([id: params.input_id_L], file(params.input_L, checkIfExists: true), file(params.input_Z, checkIfExists: true), "z"),
+        tuple([id: params.input_id_S], file(params.input_S, checkIfExists: true), file(params.input_NP, checkIfExists: true), "np"),
+        tuple([id: params.input_id_S], file(params.input_S, checkIfExists: true), file(params.input_GPC, checkIfExists: true), "gpc")
+    ).multiMap{meta, seq, alignment, gene ->
+        data: [meta, seq, alignment]
+        gene: gene
+    }
+    MAFFT_ORIENT(ch_newseq_gene.data, ch_newseq_gene.gene)
 
-        ch_newseq_gene.data.view{ meta,seq, alignment -> "Gene: ${meta.gene} - ID: ${meta.id} - File: ${seq} - Alignment: ${alignment}" }
+    ch_newseq_gene.data.view{ meta,seq, alignment -> "Gene: ${meta.gene} - ID: ${meta.id} - File: ${seq} - Alignment: ${alignment}" }
 
 
-        //isolate ony the new sequence
-        yml_file = Channel.value(file(params.modify_list, checkIfExists: true) ?: [])
-        SUBSEQ(MAFFT_ORIENT.out.fasta, MAFFT_ORIENT.out.gene, MAFFT_ORIENT.out.pattern, yml_file)
+    //isolate ony the new sequence
+    yml_file = Channel.value(file(params.modify_list, checkIfExists: true) ?: [])
+    SUBSEQ(MAFFT_ORIENT.out.fasta, MAFFT_ORIENT.out.gene, MAFFT_ORIENT.out.pattern, yml_file)
 
-        //Concat the gene segments again
-        // L: RC_Pol then Z
-        // S: RC_NP then GPC
-        genes_isolated = SUBSEQ.out.fasta.branch{ meta, gene, sequences ->
-            pol: gene == "pol"
-                return [meta, sequences]
-            z: gene == "z"
-                return [meta, sequences]
-            np: gene == "np"
-                return [meta, sequences]
-            gpc: gene == "gpc"
-                return [meta, sequences]
-        }
-
-        SEQKIT_CONCAT_L(genes_isolated.pol,genes_isolated.z)
-        SEQKIT_CONCAT_S(genes_isolated.np,genes_isolated.gpc)
-
-        ch_cutted_genes= SEQKIT_CONCAT_L.out.fasta.mix(SEQKIT_CONCAT_S.out.fasta)
-        ch_modSeqs= ch_cutted_genes.join(ch_base_alignment)
-
-        ch_added_alignment = MUSCLE(ch_modSeqs).aligned_fasta
-
-    }else {
-
-        // if we skip the individual gene extraction, we just use the input files as they are
-        ch_new_seq = Channel.of(
-            [[ id :params.input_id_L ], file(params.input_L, checkIfExists: true)],
-            [[ id :params.input_id_S ], file(params.input_S, checkIfExists: true)]
-        )
-        ch_modSeqs = ch_new_seq.join(ch_base_alignment)
-        ch_added_alignment = MAFFT_ALIGN(ch_modSeqs, "all").fasta
-
+    //Concat the gene segments again
+    // L: RC_Pol then Z
+    // S: RC_NP then GPC
+    genes_isolated = SUBSEQ.out.fasta.branch{ meta, gene, sequences ->
+        pol: gene == "pol"
+            return [meta, sequences]
+        z: gene == "z"
+            return [meta, sequences]
+        np: gene == "np"
+            return [meta, sequences]
+        gpc: gene == "gpc"
+            return [meta, sequences]
     }
 
+    SEQKIT_CONCAT_L(genes_isolated.pol,genes_isolated.z)
+    SEQKIT_CONCAT_S(genes_isolated.np,genes_isolated.gpc)
 
-    // MAFFT align add the additional sequences to the old alignment
+    ch_cutted_genes= SEQKIT_CONCAT_L.out.fasta.mix(SEQKIT_CONCAT_S.out.fasta)
+    ch_added_alignment = ch_cutted_genes
+        .mix(ch_base_alignment)
+        .collectFile(storeDir: "${params.outdir}/combined"){meta, file -> ["${meta.id}.msa", file]}
+        .map{file -> [ [id: file.simpleName], file ] }
 
     // merge with previous tree as a guidance
     ch_data_tree = ch_added_alignment.join(
         Channel.of(
-            [[ id :params.input_id_L ], params.tree_L],
-            [[ id :params.input_id_S ], params.tree_S]
+            [[ id: params.input_id_L ], params.tree_L],
+            [[ id: params.input_id_S ], params.tree_S]
             )
     )
 
