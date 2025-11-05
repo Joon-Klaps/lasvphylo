@@ -7,15 +7,11 @@
                 "nf-core": {
                     "iqtree": {
                         "branch": "master",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "mafft": {
                         "branch": "master",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     }
                 }
             }

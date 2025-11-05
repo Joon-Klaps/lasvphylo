@@ -12,12 +12,6 @@
             "description": "Define where the pipeline should find input data and save output data.",
             "required": ["input_L", "input_S", "outdir"],
             "properties": {
-                "input_id_S": {
-                    "type": "string"
-                },
-                "input_id_L": {
-                    "type": "string"
-                },
                 "input_S": {
                     "type": "string",
                     "format": "directory-path"
@@ -70,6 +64,12 @@
                     "description": "Skip the individual gene extraction step and use the input files as they are.",
                     "fa_icon": "fas fa-exchange-alt",
                     "help_text": "If set to true, the pipeline will skip the individual gene extraction step and use the input files as they are. This is useful if you already have pre-processed files."
+                },
+                "skip_iqtree": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Skip the iqtree ML tree reconstruction",
+                    "fa_icon": "fas fa-exchange-alt"
                 },
                 "outdir": {
                     "type": "string",
