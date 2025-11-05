@@ -29,16 +29,29 @@ include { IQTREE                } from '../modules/nf-core/iqtree/main.nf'
 //ALIGN with MAFT -- keep length and try and have only the L and GPC genes. & Create a tree.
 workflow LASVPHYLO {
 
-    ch_cutted_genes= Channel.empty()
+    ch_cutted_genes   = Channel.empty()
+    ch_base_alignment = Channel.empty()
+    ch_trees          = Channel.empty()
 
-    input_id_L = file(params.input_L, checkIfExists: true).basename ?: "L"
-    input_id_S = file(params.input_S, checkIfExists: true).basename ?: "S"
+    input_id_L =  "L"
+    input_id_S =  "S"
 
-    // previous alingmnet channel
-    ch_base_alignment = Channel.of(
-        [[ id :input_id_L ], file(params.alignment_L) ?: []],
-        [[ id :input_id_S ], file(params.alignment_S) ?: []]
-    )
+    // previous alignment channel - handle optional parameters
+    ch_alignment_inputs = Channel.empty()
+
+    if (params.alignment_L) {
+        ch_alignment_inputs = ch_alignment_inputs.mix(
+            Channel.fromPath(params.alignment_L).map{it -> [[id: input_id_L], it]}
+        )
+    }
+
+    if (params.alignment_S) {
+        ch_alignment_inputs = ch_alignment_inputs.mix(
+            Channel.fromPath(params.alignment_S).map{it -> [[id: input_id_S], it]}
+        )
+    }
+
+    ch_base_alignment = ch_alignment_inputs
 
     if (!params.skip_indiv_gene_extraction) {
         // orient & isolate genes difficult to make them into a single channel as we need to make a distinction the correct order of genes
@@ -55,8 +68,8 @@ workflow LASVPHYLO {
 
         // ch_newseq_gene.data.view{ meta,seq, alignment -> "Gene: ${meta.gene} - ID: ${meta.id} - File: ${seq} - Alignment: ${alignment}" }
 
-        // Isolate ony the new sequence (optionally) and remove regions from sequences that have only a single genome & contaminate the data.
-        yml_file = Channel.value(file(params.modify_list, checkIfExists: true) ?: [])
+        // Isolate only the new sequence (optionally) and remove regions from sequences that have only a single genome & contaminate the data.
+        yml_file = params.modify_list ? Channel.fromPath(params.modify_list, checkIfExists: true).collect() : []
         SUBSEQ(MAFFT_ORIENT.out.fasta, MAFFT_ORIENT.out.gene, MAFFT_ORIENT.out.pattern, yml_file)
 
         //Concat the gene segments again
@@ -90,21 +103,34 @@ workflow LASVPHYLO {
             [[ id :input_id_S ], file(params.input_S, checkIfExists: true)]
         )
         ch_modSeqs = ch_new_seq.join(ch_base_alignment)
-        ch_added_alignment = MAFFT_ALIGN(ch_modSeqs, "all").fasta
+        ch_added_alignment = MAFFT_ALIGN(ch_modSeqs, "all").out.fasta
     }
 
     // make a ML tree
     if (!params.skip_tree) {
-        // merge with previous tree as a guidance
-        ch_iqtree = ch_added_alignment.join(
-            Channel.of(
-                [[ id :input_id_L ], file(params.tree_L) ?: []],
-                [[ id :input_id_S ], file(params.tree_S) ?: []]
-                )
-        ).multiMap{ meta, seq, tree ->
-            seq: [meta, seq]
-            tree: [meta, tree]
+
+        // merge with previous tree as a guidance - handle optional parameters
+        ch_tree_inputs = Channel.empty()
+
+        if (params.tree_L) {
+            ch_tree_inputs = ch_tree_inputs.mix(
+                Channel.fromPath(params.tree_L).map{it -> [[id: input_id_L], it]}
+            )
         }
+
+        if (params.tree_S) {
+            ch_tree_inputs = ch_tree_inputs.mix(
+                Channel.fromPath(params.tree_S).map{it -> [[id: input_id_S], it]}
+            )
+        }
+
+        ch_trees = ch_tree_inputs
+
+        ch_iqtree = ch_added_alignment.join(ch_trees)
+            .multiMap{ meta, seq, tree ->
+                seq: [meta, seq]
+                tree: [meta, tree]
+            }
 
         //Make ML tree of new seq (optional) and previous alignment where previous sequences are under a constraint tree
         IQTREE(ch_iqtree.seq, ch_iqtree.tree, [])
