@@ -47,7 +47,13 @@ params {
     input_L      = '/path/to/input/sequences.L.fasta'
     input_S      = '/path/to/input/sequences.S.fasta'
 
-    // out dir
+    // Optional Inputs - if none provided, everything will be run from scratch
+    alignment_L = '/path/to/existing/alignment.L.fasta'
+    alignment_S = '/path/to/existing/alignment.S.fasta'
+    tree_L      = '/path/to/existing/tree.L.treefile'
+    tree_S      = '/path/to/existing/tree.S.treefile'
+
+    // Output directory
     outdir      = 'testing'
 }
 ```
