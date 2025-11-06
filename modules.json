@@ -12,10 +12,6 @@
                     "mafft": {
                         "branch": "master",
                         "installed_by": ["modules"]
-                    },
-                    "seqtk/subseq": {
-                        "branch": "master",
-                        "installed_by": ["modules"]
                     }
                 }
             }

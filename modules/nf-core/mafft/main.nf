@@ -17,6 +17,7 @@ process MAFFT {
     output:
     tuple val(meta), path("*.fas")  , emit: fasta
     path ("*.txt")                  , emit: pattern
+    val gene                        , emit: gene
     path "versions.yml"             , emit: versions
 
     when:
@@ -24,11 +25,11 @@ process MAFFT {
 
     script:
     def args = task.ext.args ?: ''
-    def fasta = alignment 
+    def fasta = alignment
     def prefix = task.ext.prefix ?: "${meta.id}"
     def add = addsequences ? "--add ${addsequences}" : ''
     def gene = gene? ".${gene}" : ''
-    
+
     """
     mafft \\
         --thread ${task.cpus} \\
@@ -37,7 +38,7 @@ process MAFFT {
         ${fasta}  \\
         > tmp
 
-    sed "s/>_R_/>/g" tmp > ${prefix}${gene}.fas 
+    sed "s/>_R_/>/g" tmp > ${prefix}${gene}.fas
     grep ">" ${addsequences} | sed "s/>//g" > ${prefix}.patterns.txt
 
     cat <<-END_VERSIONS > versions.yml
