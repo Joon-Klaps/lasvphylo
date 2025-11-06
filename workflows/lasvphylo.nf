@@ -91,9 +91,21 @@ workflow LASVPHYLO {
         SEQKIT_CONCAT_S(genes_isolated.np,genes_isolated.gpc)
 
         ch_cutted_genes= SEQKIT_CONCAT_L.out.fasta.mix(SEQKIT_CONCAT_S.out.fasta)
-        ch_modSeqs= ch_cutted_genes.join(ch_base_alignment)
 
         ch_added_alignment = ch_cutted_genes
+            .join(ch_base_alignment, remainder: true)
+            .map{ meta, seq, alignment ->
+                alignment ? [ meta, [seq, alignment ] ] : [ meta, [seq] ]
+            }
+            .transpose()
+            .collectFile(newLine: true, storeDir: "${params.outdir}/combined_alignment") {
+                meta, seq ->
+                [ "${meta.id}_combined.fa", seq ]
+            }.map{ it ->
+                def id = it.baseName.replace("_combined", "")
+                [ [id: id], it ]
+            }
+
 
     }else {
 
@@ -126,10 +138,10 @@ workflow LASVPHYLO {
 
         ch_trees = ch_tree_inputs
 
-        ch_iqtree = ch_added_alignment.join(ch_trees)
+        ch_iqtree = ch_added_alignment.join(ch_trees, remainder:true)
             .multiMap{ meta, seq, tree ->
                 seq: [meta, seq]
-                tree: [meta, tree]
+                tree: [meta, tree?: []]
             }
 
         //Make ML tree of new seq (optional) and previous alignment where previous sequences are under a constraint tree

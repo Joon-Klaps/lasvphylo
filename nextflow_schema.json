@@ -65,7 +65,7 @@
                     "fa_icon": "fas fa-exchange-alt",
                     "help_text": "If set to true, the pipeline will skip the individual gene extraction step and use the input files as they are. This is useful if you already have pre-processed files."
                 },
-                "skip_iqtree": {
+                "skip_tree": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip the iqtree ML tree reconstruction",

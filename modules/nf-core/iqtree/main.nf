@@ -1,7 +1,7 @@
 //modified from the original module
 
 process IQTREE {
-    tag "$alignment"
+    tag "${meta.id}"
     label 'process_medium'
 
     conda "bioconda::iqtree=2.1.4_beta"
