@@ -47,4 +47,4 @@ jobs:
         env:
           profile: ${{ matrix.test_profile }}
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile docker,${profile} --outdir ./results
+          nextflow run ${GITHUB_WORKSPACE} -ansi-log false -profile docker,${profile} --outdir ./results
