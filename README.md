@@ -4,7 +4,7 @@
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
-[![test status](https://img.shields.io/badge/tests-passing-brightgreen.svg?labelColor=000000)](https://github.com/Joon-Klaps/lasvphylo/actions/test.yml)
+[![test status](https://github.com/Joon-Klaps/lasvphylo/actions/workflows/test.yml/badge.svg)](https://github.com/Joon-Klaps/lasvphylo/actions/workflows/test.yml)
 
 ## Introduction
 
