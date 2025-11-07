@@ -8,7 +8,9 @@
 
 ## Introduction
 
-**nf-core/lasvphylo** is a bioinformatics "best-practice" analysis pipeline for creating a high quality alignment of LASV segements and a maximum likelihood tree. I use this pipeline for a fast phylogentic analysis of newly identified LASV cases/outbreaks to determine the rise of new clades or interesting mutations.
+**lasvphylo** is a pipeline for creating a high quality alignment of LASV segements and a maximum likelihood tree. I use this pipeline for a fast phylogentic analysis of newly identified LASV cases/outbreaks to determine the rise of new clades or interesting mutations.
+
+[![Pipeline overview](docs/images/Workflow.png)](docs/images/Workflow.png)
 
 ## Pipeline summary
 
