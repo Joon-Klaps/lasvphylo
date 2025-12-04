@@ -18,6 +18,7 @@ process MAFFT_ALIGN {
 
     output:
     tuple val(meta), path("*.fas{.gz,}"), emit: fas
+    tuple val(meta), path("*.patterns.txt"), emit: patterns
     path "versions.yml"                 , emit: versions
 
     when:
@@ -44,7 +45,10 @@ process MAFFT_ALIGN {
         ${addlong} \\
         ${args} \\
         ${fasta} \\
-        ${write_output}
+        > tmp
+
+    sed "s/>_R_/>/g" tmp > ${prefix}.fas
+    grep ">" ${add} | sed "s/>//g" > ${prefix}.patterns.txt
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

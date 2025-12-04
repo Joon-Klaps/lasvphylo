@@ -69,22 +69,25 @@ workflow LASVPHYLO {
 
     if (!params.skip_indiv_gene_extraction) {
         // orient & isolate genes difficult to make them into a single channel as we need to make a distinction the correct order of genes
-        ch_newseq_gene = channel.of(
-            tuple([id: input_id_L], file(input_L, checkIfExists: true), file(input_POL, checkIfExists: true), "pol"),
-            tuple([id: input_id_L], file(input_L, checkIfExists: true), file(input_Z, checkIfExists: true), "z"),
-            tuple([id: input_id_S], file(input_S, checkIfExists: true), file(input_NP, checkIfExists: true), "np"),
-            tuple([id: input_id_S], file(input_S, checkIfExists: true), file(input_GPC, checkIfExists: true), "gpc")
-        ).multiMap{meta, seq, alignment, gene ->
-            data: [meta, seq, alignment]
-            gene: gene
+        ch_newseq = channel.of(
+            tuple([id: input_id_L, gene: "pol"], file(input_L, checkIfExists: true), file(input_POL, checkIfExists: true)),
+            tuple([id: input_id_L, gene: "z"], file(input_L, checkIfExists: true), file(input_Z, checkIfExists: true)),
+            tuple([id: input_id_S, gene: "np"], file(input_S, checkIfExists: true), file(input_NP, checkIfExists: true)),
+            tuple([id: input_id_S, gene: "gpc"], file(input_S, checkIfExists: true), file(input_GPC, checkIfExists: true))
+        ).multiMap{meta, seq, alignment ->
+            fasta: [meta, alignment]
+            add: [meta, seq]
         }
-        MAFFT_GENE(ch_newseq_gene.data, ch_newseq_gene.gene)
+
+        MAFFT_GENE(ch_newseq.fasta, ch_newseq.add,[[:],[]], [[:],[]], [[:],[]], [[:],[]], false)
+
 
         // ch_newseq_gene.data.view{ meta,seq, alignment -> "Gene: ${meta.gene} - ID: ${meta.id} - File: ${seq} - Alignment: ${alignment}" }
 
         // Isolate only the new sequence (optionally) and remove regions from sequences that have only a single genome & contaminate the data.
         yml_file = modify_list ? channel.fromPath(modify_list, checkIfExists: true).collect() : []
-        SUBSEQ(MAFFT_GENE.out.fasta, MAFFT_GENE.out.gene, MAFFT_GENE.out.pattern, yml_file)
+        ch_gene = MAFFT_GENE.out.fasta.map {meta, _fasta -> meta.gene }
+        SUBSEQ(MAFFT_GENE.out.fasta, ch_gene, MAFFT_GENE.out.pattern, yml_file)
 
         //Concat the gene segments again
         // L: RC_Pol then Z
@@ -120,6 +123,10 @@ workflow LASVPHYLO {
                 [ [id: id], it ]
             }
 
+        ch_versions = ch_versions.mix(MAFFT_GENE.out.versions)
+            .mix(SUBSEQ.out.versions)
+            .mix(SEQKIT_CONCAT_L.out.versions)
+            .mix(SEQKIT_CONCAT_S.out.versions)
 
     }else {
 
@@ -130,6 +137,7 @@ workflow LASVPHYLO {
         )
         ch_modSeqs = ch_new_seq.join(ch_base_alignment)
         ch_added_alignment = MAFFT_SEGMENT(ch_modSeqs, "all").out.fasta
+        ch_versions = ch_versions.mix(MAFFT_SEGMENT.out.versions)
     }
 
     // make a ML tree
@@ -154,13 +162,27 @@ workflow LASVPHYLO {
 
         ch_iqtree = ch_added_alignment.join(ch_trees, remainder:true)
             .multiMap{ meta, seq, tree ->
-                seq: [meta, seq]
-                tree: [meta, tree?: []]
+                seq: [meta, seq, []]
+                tree: tree?: []
             }
 
         //Make ML tree of new seq (optional) and previous alignment where previous sequences are under a constraint tree
-        IQTREE(ch_iqtree.seq, ch_iqtree.tree, [])
-
+        IQTREE(
+            ch_iqtree.seq,
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            ch_iqtree.tree,
+            [],
+            [],
+            []
+        )
+        ch_versions = ch_versions.mix(IQTREE.out.versions)
     }
 
 
