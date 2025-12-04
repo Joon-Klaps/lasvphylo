@@ -1,0 +1,48 @@
+# Example YAML configuration for subsequence filtering
+# This file demonstrates the filtering rules for different genes
+
+pol:
+  to_remove:
+    - old_reference_1
+    - contaminated_seq_2
+  to_remove_chunk:
+    pattern: "NNNNN"
+    leading:
+      - sample_A1
+      - sample_B2
+    trailing:
+      - sample_C3
+      - sample_D4
+
+z:
+  to_remove:
+    - low_quality_seq
+  to_remove_chunk:
+    pattern: "NNN"
+    leading:
+      - partial_seq_1
+    trailing:
+      - partial_seq_2
+
+np:
+  to_remove:
+    - reference_old
+  to_remove_chunk:
+    pattern: "NNNNNN"
+    leading:
+      - incomplete_start_1
+      - incomplete_start_2
+    trailing:
+      - incomplete_end_1
+
+gpc:
+  to_remove:
+    - bad_quality_1
+    - bad_quality_2
+  to_remove_chunk:
+    pattern: "NNN"
+    leading:
+      - trim_start_1
+    trailing:
+      - trim_end_1
+      - trim_end_2

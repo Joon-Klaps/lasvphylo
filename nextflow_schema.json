@@ -10,42 +10,67 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input_L","input_S", "outdir"],
+            "required": ["input_L", "input_S", "outdir"],
             "properties": {
-                "input_id_S": {
-                    "type": "string"},
-                "input_id_L": {
-                    "type": "string"},
                 "input_S": {
                     "type": "string",
-                    "format": "directory-path"},
+                    "format": "directory-path"
+                },
                 "input_L": {
                     "type": "string",
-                    "format": "directory-path"},
+                    "format": "directory-path"
+                },
                 "alignment_S": {
                     "type": "string",
-                    "format": "directory-path"},
+                    "format": "directory-path"
+                },
                 "alignment_L": {
                     "type": "string",
-                    "format": "directory-path"},
+                    "format": "directory-path"
+                },
                 "tree_L": {
                     "type": "string",
-                    "format": "directory-path"},
+                    "format": "directory-path"
+                },
                 "tree_S": {
                     "type": "string",
-                    "format": "directory-path"},
+                    "format": "directory-path"
+                },
                 "input_POL": {
                     "type": "string",
-                    "format": "directory-path"},
+                    "format": "directory-path"
+                },
                 "input_Z": {
                     "type": "string",
-                    "format": "directory-path"},
+                    "format": "directory-path"
+                },
                 "input_NP": {
                     "type": "string",
-                    "format": "directory-path"},
-                "input_GPC" : {
+                    "format": "directory-path"
+                },
+                "input_GPC": {
                     "type": "string",
-                    "format": "directory-path"},
+                    "format": "directory-path"
+                },
+                "modify_list": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Path to a yml file containing a list of sequences to modify. This is used to filter the sequences based on the provided list.",
+                    "fa_icon": "fas fa-list"
+                },
+                "skip_indiv_gene_extraction": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Skip the individual gene extraction step and use the input files as they are.",
+                    "fa_icon": "fas fa-exchange-alt",
+                    "help_text": "If set to true, the pipeline will skip the individual gene extraction step and use the input files as they are. This is useful if you already have pre-processed files."
+                },
+                "skip_tree": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Skip the iqtree ML tree reconstruction",
+                    "fa_icon": "fas fa-exchange-alt"
+                },
                 "outdir": {
                     "type": "string",
                     "format": "directory-path",
