@@ -68,6 +68,7 @@ workflow {
     JOONKLAPS_LASVPHYLO (
         params.input_L,
         params.input_S,
+        params.outdir,
         params.alignment_L,
         params.tree_L,
         params.alignment_S,

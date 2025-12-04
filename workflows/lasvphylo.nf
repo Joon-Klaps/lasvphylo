@@ -4,33 +4,32 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
-
 //
 // MODULES
 //
 
-include { MAFFT as MAFFT_ORIENT } from '../modules/nf-core/mafft/main.nf'
-include { SUBSEQ                } from '../modules/local/subseq/main.nf'
+/*--- ALIGN TOOLS ---*/
+include { MAFFT_ALIGN as MAFFT_GENE        } from '../modules/nf-core/mafft/align/main.nf'
+include { MAFFT_ALIGN as MAFFT_SEGMENT     } from '../modules/nf-core/mafft/align/main.nf'
+include { SUBSEQ                           } from '../modules/local/subseq/main.nf'
 
+/*--- CONCATENATE TOOLS ---*/
 include { SEQKIT_CONCAT as SEQKIT_CONCAT_L } from '../modules/local/seqkit/concat.nf'
 include { SEQKIT_CONCAT as SEQKIT_CONCAT_S } from '../modules/local/seqkit/concat.nf'
 
-include { MAFFT as MAFFT_ALIGN  } from '../modules/nf-core/mafft/main.nf'
-
-include { IQTREE                } from '../modules/nf-core/iqtree/main.nf'
+/*--- TREE TOOLS ---*/
+include { IQTREE                           } from '../modules/nf-core/iqtree/main.nf'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
-//ALIGN with MAFT -- keep length and try and have only the L and GPC genes. & Create a tree.
 workflow LASVPHYLO {
     take:
     input_L
     input_S
+    outdir
     alignment_L
     tree_L
     alignment_S
@@ -79,13 +78,13 @@ workflow LASVPHYLO {
             data: [meta, seq, alignment]
             gene: gene
         }
-        MAFFT_ORIENT(ch_newseq_gene.data, ch_newseq_gene.gene)
+        MAFFT_GENE(ch_newseq_gene.data, ch_newseq_gene.gene)
 
         // ch_newseq_gene.data.view{ meta,seq, alignment -> "Gene: ${meta.gene} - ID: ${meta.id} - File: ${seq} - Alignment: ${alignment}" }
 
         // Isolate only the new sequence (optionally) and remove regions from sequences that have only a single genome & contaminate the data.
         yml_file = modify_list ? channel.fromPath(modify_list, checkIfExists: true).collect() : []
-        SUBSEQ(MAFFT_ORIENT.out.fasta, MAFFT_ORIENT.out.gene, MAFFT_ORIENT.out.pattern, yml_file)
+        SUBSEQ(MAFFT_GENE.out.fasta, MAFFT_GENE.out.gene, MAFFT_GENE.out.pattern, yml_file)
 
         //Concat the gene segments again
         // L: RC_Pol then Z
@@ -130,11 +129,11 @@ workflow LASVPHYLO {
             [[ id :input_id_S ], file(input_S, checkIfExists: true)]
         )
         ch_modSeqs = ch_new_seq.join(ch_base_alignment)
-        ch_added_alignment = MAFFT_ALIGN(ch_modSeqs, "all").out.fasta
+        ch_added_alignment = MAFFT_SEGMENT(ch_modSeqs, "all").out.fasta
     }
 
     // make a ML tree
-    if (!skip_tree) {
+    if (!params.skip_tree) {
 
         // merge with previous tree as a guidance - handle optional parameters
         ch_tree_inputs = channel.empty()
