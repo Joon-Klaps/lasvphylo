@@ -18,7 +18,7 @@ process MAFFT_ALIGN {
 
     output:
     tuple val(meta), path("*.fas{.gz,}"), emit: fas
-    tuple val(meta), path("*.patterns.txt"), emit: patterns
+    tuple val(meta), path("*.patterns.txt"), emit: pattern
     path "versions.yml"                 , emit: versions
 
     when:
@@ -27,22 +27,22 @@ process MAFFT_ALIGN {
     script:
     def args         = task.ext.args   ?: ''
     def prefix       = task.ext.prefix ?: "${meta.id}"
-    def add          = add             ? "--add <(unpigz -cdf ${add})"                   : ''
-    def addfragments = addfragments    ? "--addfragments <(unpigz -cdf ${addfragments})" : ''
-    def addfull      = addfull         ? "--addfull <(unpigz -cdf ${addfull})"           : ''
-    def addprofile   = addprofile      ? "--addprofile <(unpigz -cdf ${addprofile})"     : ''
-    def addlong      = addlong         ? "--addlong <(unpigz -cdf ${addlong})"           : ''
+    def command_add          = add             ? "--add <(unpigz -cdf ${add})"                   : ''
+    def command_addfragments = addfragments    ? "--addfragments <(unpigz -cdf ${addfragments})" : ''
+    def command_addfull      = addfull         ? "--addfull <(unpigz -cdf ${addfull})"           : ''
+    def command_addprofile   = addprofile      ? "--addprofile <(unpigz -cdf ${addprofile})"     : ''
+    def command_addlong      = addlong         ? "--addlong <(unpigz -cdf ${addlong})"           : ''
     def write_output = compress ? " | pigz -cp ${task.cpus} > ${prefix}.fas.gz" : "> ${prefix}.fas"
     // this will not preserve MAFFTs return value, but mafft crashes when it receives a process substitution
     if ("$fasta" == "${prefix}.fas" ) error "Input and output names are the same, set prefix in module configuration to disambiguate!"
     """
     mafft \\
         --thread ${task.cpus} \\
-        ${add} \\
-        ${addfragments} \\
-        ${addfull} \\
-        ${addprofile} \\
-        ${addlong} \\
+        ${command_add} \\
+        ${command_addfragments} \\
+        ${command_addfull} \\
+        ${command_addprofile} \\
+        ${command_addlong} \\
         ${args} \\
         ${fasta} \\
         > tmp

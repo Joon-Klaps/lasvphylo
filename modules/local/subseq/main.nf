@@ -10,7 +10,7 @@ process SUBSEQ {
     input:
     tuple val(meta), path(fasta)
     val gene
-    path filter_list
+    tuple val(meta2), path(filter_list)
     path yml
 
     output:

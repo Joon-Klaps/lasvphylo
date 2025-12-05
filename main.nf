@@ -28,7 +28,18 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_lasv
 workflow JOONKLAPS_LASVPHYLO {
 
     take:
-    samplesheet // channel: samplesheet read in from --input
+    input_L
+    input_S
+    outdir
+    alignment_L
+    tree_L
+    alignment_S
+    tree_S
+    input_POL
+    input_Z
+    input_NP
+    input_GPC
+    modify_list
 
     main:
 
@@ -36,7 +47,18 @@ workflow JOONKLAPS_LASVPHYLO {
     // WORKFLOW: Run pipeline
     //
     LASVPHYLO (
-        samplesheet
+        input_L,
+        input_S,
+        outdir,
+        alignment_L,
+        tree_L,
+        alignment_S,
+        tree_S,
+        input_POL,
+        input_Z,
+        input_NP,
+        input_GPC,
+        modify_list
     )
 }
 /*

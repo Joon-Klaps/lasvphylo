@@ -4,6 +4,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
+include { softwareVersionsToYAML          } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+
 //
 // MODULES
 //
@@ -86,8 +88,8 @@ workflow LASVPHYLO {
 
         // Isolate only the new sequence (optionally) and remove regions from sequences that have only a single genome & contaminate the data.
         yml_file = modify_list ? channel.fromPath(modify_list, checkIfExists: true).collect() : []
-        ch_gene = MAFFT_GENE.out.fasta.map {meta, _fasta -> meta.gene }
-        SUBSEQ(MAFFT_GENE.out.fasta, ch_gene, MAFFT_GENE.out.pattern, yml_file)
+        ch_gene = MAFFT_GENE.out.fas.map {meta, _fasta -> meta.gene }
+        SUBSEQ(MAFFT_GENE.out.fas, ch_gene, MAFFT_GENE.out.pattern, yml_file)
 
         //Concat the gene segments again
         // L: RC_Pol then Z
@@ -136,7 +138,7 @@ workflow LASVPHYLO {
             [[ id :input_id_S ], file(input_S, checkIfExists: true)]
         )
         ch_modSeqs = ch_new_seq.join(ch_base_alignment)
-        ch_added_alignment = MAFFT_SEGMENT(ch_modSeqs, "all").out.fasta
+        ch_added_alignment = MAFFT_SEGMENT(ch_modSeqs, "all").out.fas
         ch_versions = ch_versions.mix(MAFFT_SEGMENT.out.versions)
     }
 
