@@ -109,9 +109,9 @@ workflow LASVPHYLO {
         SEQKIT_CONCAT_L(genes_isolated.pol,genes_isolated.z)
         SEQKIT_CONCAT_S(genes_isolated.np,genes_isolated.gpc)
 
-        ch_cutted_genes= SEQKIT_CONCAT_L.out.fasta.mix(SEQKIT_CONCAT_S.out.fasta)
+        ch_cutted_genes = SEQKIT_CONCAT_L.out.fasta.mix(SEQKIT_CONCAT_S.out.fasta)
 
-        ch_added_alignment = ch_cutted_genes
+        ch_added_alignment = ch_cutted_genes.map{meta, seq -> [meta.subMap('id'), seq]}
             .join(ch_base_alignment, remainder: true)
             .map{ meta, seq, alignment ->
                 alignment ? [ meta, [seq, alignment ] ] : [ meta, [seq] ]
@@ -148,6 +148,7 @@ workflow LASVPHYLO {
         // merge with previous tree as a guidance - handle optional parameters
         ch_tree_inputs = channel.empty()
 
+
         if (tree_L) {
             ch_tree_inputs = ch_tree_inputs.mix(
                 channel.fromPath(tree_L).map{it -> [[id: input_id_L], it]}
@@ -163,6 +164,7 @@ workflow LASVPHYLO {
         ch_trees = ch_tree_inputs
 
         ch_iqtree = ch_added_alignment.join(ch_trees, remainder:true)
+            .filter{ _meta, seq, _tree -> seq != null }
             .multiMap{ meta, seq, tree ->
                 seq: [meta, seq, []]
                 tree: tree?: []
@@ -186,7 +188,6 @@ workflow LASVPHYLO {
         )
         ch_versions = ch_versions.mix(IQTREE.out.versions)
     }
-
 
     //
     // Collate and save software versions
@@ -216,6 +217,9 @@ workflow LASVPHYLO {
             sort: true,
             newLine: true
         ).set { ch_collated_versions }
+
+    emit:
+    versions = ch_collated_versions
 }
 
 /*
