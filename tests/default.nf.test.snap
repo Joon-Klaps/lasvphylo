@@ -71,16 +71,8 @@
                 "versions.yml:md5,d1363b46baf65f96adb8d956f55168c8",
                 "L_combined.fa:md5,2420d22a371dc920909849de949e6541",
                 "S_combined.fa:md5,8af24dd27b47db2f6f9069dcbf75650d",
-                "L.contree:md5,a027acab51dc6d68bd4a3808a14b5691",
-                "L.iqtree:md5,5dddc4b672b718533e5750c3416953e8",
                 "L.mldist:md5,6c6e05071fae9f26969aebb24932afcb",
-                "L.splits.nex:md5,0da9dd6387cd00cba837a6879c4ade07",
-                "L.treefile:md5,49803727ac661f1a2f6ba8f8ed88b48b",
-                "S.contree:md5,534cae6c99b7cb825abf8c212fa6fad2",
-                "S.iqtree:md5,be64ff46dedf3065648a46d417586902",
                 "S.mldist:md5,42415ef7a7f06b9c69bee3f24a8d284c",
-                "S.splits.nex:md5,95a3c8beda8b5997c1af1b1625f508c1",
-                "S.treefile:md5,961fae2a19910eb65bd49b91331f7000",
                 "versions.yml:md5,30f5dd408cae1a608f08e990383f079b",
                 "L_pol.fas:md5,3db3b4aa4e01082dae37e2843d371792",
                 "L_pol.patterns.txt:md5,5128aa89dae7bf4eb0966153ad074f74",
@@ -102,6 +94,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2025-12-05T15:52:52.547794"
+        "timestamp": "2025-12-05T16:27:57.917893"
     }
 }

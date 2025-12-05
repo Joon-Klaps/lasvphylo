@@ -138,7 +138,11 @@ workflow LASVPHYLO {
             [[ id :input_id_S ], file(input_S, checkIfExists: true)]
         )
         ch_modSeqs = ch_new_seq.join(ch_base_alignment)
-        ch_added_alignment = MAFFT_SEGMENT(ch_modSeqs, "all").out.fas
+            .branch{ meta, seq, alignment ->
+                aln: [meta + [gene:"all"], alignment ]
+                add: [meta + [gene:"all"], seq ]
+            }
+        MAFFT_SEGMENT(ch_modSeqs.aln, ch_modSeqs.add,[[:],[]], [[:],[]], [[:],[]], [[:],[]], false)
         ch_versions = ch_versions.mix(MAFFT_SEGMENT.out.versions)
     }
 

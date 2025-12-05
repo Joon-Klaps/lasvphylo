@@ -68,15 +68,7 @@
                 "S_concat.fa:md5,22bd487c0499acd8fb06e9ccb6da8e4e",
                 "versions.yml:md5,d1363b46baf65f96adb8d956f55168c8",
                 "L_combined.fa:md5,e7d6447cab14a0c34147092d0dbfbfb1",
-                "S_combined.fa:md5,85cd4ca44b9116eda63f31b7d84e19ec",
-                "L.contree:md5,c83ac569e5882fca7d61add2a2a62516",
-                "L.iqtree:md5,f3a2550639afc25c92c936d9445cf687",
-                "L.splits.nex:md5,991a3d18ffce38ab18a012a14d4e5889",
-                "L.treefile:md5,080639d8396c6458f501af7586a58f50",
-                "S.contree:md5,28e87b6e5b4236ea697f3b792b05a940",
-                "S.iqtree:md5,9357c0df30dffa842785b8c70ef874fe",
-                "S.splits.nex:md5,07e5d919f798e54e92f221913f7fa78f",
-                "S.treefile:md5,57ffe612510edd2e06fbb37b6db98df1",
+                "S_combined.fa:md5,a9deff883cfce3eb4fbcd482dc29ba35",
                 "versions.yml:md5,30f5dd408cae1a608f08e990383f079b",
                 "L_pol.fas:md5,3db3b4aa4e01082dae37e2843d371792",
                 "L_pol.patterns.txt:md5,5128aa89dae7bf4eb0966153ad074f74",
@@ -98,6 +90,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.10.2"
         },
-        "timestamp": "2025-12-05T15:54:49.761825"
+        "timestamp": "2025-12-05T16:30:06.895593"
     }
 }

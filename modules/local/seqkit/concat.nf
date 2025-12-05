@@ -19,7 +19,7 @@ process SEQKIT_CONCAT{
     task.ext.when == null || task.ext.when
 
     script:
-    def args = task.ext.args ?: ''
+    def _args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta1.id}"
     """
     seqkit \\

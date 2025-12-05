@@ -32,7 +32,7 @@ process MAFFT_ALIGN {
     def command_addfull      = addfull         ? "--addfull <(unpigz -cdf ${addfull})"           : ''
     def command_addprofile   = addprofile      ? "--addprofile <(unpigz -cdf ${addprofile})"     : ''
     def command_addlong      = addlong         ? "--addlong <(unpigz -cdf ${addlong})"           : ''
-    def write_output = compress ? " | pigz -cp ${task.cpus} > ${prefix}.fas.gz" : "> ${prefix}.fas"
+    def _write_output = compress ? " | pigz -cp ${task.cpus} > ${prefix}.fas.gz" : "> ${prefix}.fas"
     // this will not preserve MAFFTs return value, but mafft crashes when it receives a process substitution
     if ("$fasta" == "${prefix}.fas" ) error "Input and output names are the same, set prefix in module configuration to disambiguate!"
     """
@@ -58,13 +58,13 @@ process MAFFT_ALIGN {
     """
 
     stub:
-    def args         = task.ext.args   ?: ''
+    def _args         = task.ext.args   ?: ''
     def prefix       = task.ext.prefix ?: "${meta.id}"
-    def add          = add             ? "--add ${add}"                   : ''
-    def addfragments = addfragments    ? "--addfragments ${addfragments}" : ''
-    def addfull      = addfull         ? "--addfull ${addfull}"           : ''
-    def addprofile   = addprofile      ? "--addprofile ${addprofile}"     : ''
-    def addlong      = addlong         ? "--addlong ${addlong}"           : ''
+    def _command_add          = add             ? "--add ${add}"                   : ''
+    def _command_addfragments = addfragments    ? "--addfragments ${addfragments}" : ''
+    def _command_addfull      = addfull         ? "--addfull ${addfull}"           : ''
+    def _command_addprofile   = addprofile      ? "--addprofile ${addprofile}"     : ''
+    def _command_addlong      = addlong         ? "--addlong ${addlong}"           : ''
     if ("$fasta" == "${prefix}.fas" )  error "Input and output names are the same, set prefix in module configuration to disambiguate!"
     """
     touch ${prefix}.fas${compress ? '.gz' : ''}
