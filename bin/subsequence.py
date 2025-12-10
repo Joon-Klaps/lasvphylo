@@ -31,7 +31,7 @@ def load_filter_list(filter_file: Path) -> Set[str]:
     """Load sequence IDs from a newline-delimited list."""
     try:
         with open(filter_file, "r", encoding="utf-8") as handle:
-            return {line.split(" ", 1)[0] for line in handle if line.strip()}
+            return {line.split(" ", 1)[0].strip() for line in handle if line.strip()}
     except OSError as exc:
         logging.error("Failed to read filter list '%s': %s", filter_file, exc)
         print(f"Error loading filter list {filter_file}: {exc}", file=sys.stderr)
@@ -88,7 +88,7 @@ def mask_trailing_regions(sequence: str, pattern: str) -> str:
 
 def process_sequence(record: SeqRecord, gene_config: Dict, target_ids: Set[str]) -> Optional[SeqRecord]:
     """Apply simple filtering and masking rules to a sequence record."""
-    seq_id = record.id
+    seq_id = record.id.strip()
     sequence = str(record.seq)
 
     if target_ids and seq_id not in target_ids:
