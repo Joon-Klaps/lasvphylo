@@ -1,21 +1,23 @@
+nextflow.preview.types = true
+
 process SUBSEQ {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/biopython_python_pyyaml:af5270f8003cfae1' :
-        'community.wave.seqera.io/library/biopython_python_pyyaml:07336da3f95d6451' }"
+    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+        ? 'oras://community.wave.seqera.io/library/biopython_python_pyyaml:af5270f8003cfae1'
+        : 'community.wave.seqera.io/library/biopython_python_pyyaml:07336da3f95d6451'}"
 
     input:
-    tuple val(meta), path(fasta)
-    val gene
-    tuple val(meta2), path(filter_list)
-    path yml
+    (meta, fasta)        : Tuple<?, Path>
+    gene                 : String
+    (meta2, filter_list) : Tuple<?, Path>
+    yml                  : Path
 
     output:
-    tuple val(meta), val(gene), path("*.fa"), emit: fasta
-    path "versions.yml"                     , emit: versions
+    fasta    = tuple(meta, gene, file("*.fa"))
+    versions = file("versions.yml")
 
     when:
     task.ext.when == null || task.ext.when
